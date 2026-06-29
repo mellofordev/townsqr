@@ -38,10 +38,11 @@ export interface OnboardingStatus {
 }
 
 interface CompleteOnboardingData {
+	inviteEmail?: string;
+	inviteEmails?: string[];
 	organizationName: string;
 	organizationType: string;
 	inviteCode: string;
-	inviteEmail?: string;
 }
 
 export const onboardingStatusQueryKey = ["onboarding", "status"] as const;
@@ -66,6 +67,19 @@ function sanitizeInviteCode(code: string) {
 		.toUpperCase()
 		.replace(/[^A-Z0-9]/g, "")
 		.slice(0, 8);
+}
+
+function normalizeInviteEmail(email: string) {
+	return email.trim().toLowerCase();
+}
+
+function getInviteEmails(data: CompleteOnboardingData) {
+	return Array.from(
+		new Set([
+			...(data.inviteEmails ?? []).map(normalizeInviteEmail),
+			...(data.inviteEmail ? [normalizeInviteEmail(data.inviteEmail)] : []),
+		]),
+	).filter(Boolean);
 }
 
 function assertOrganizationType(value: string): OrganizationType {
@@ -121,7 +135,7 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 		const organizationName = data.organizationName.trim();
 		const organizationType = assertOrganizationType(data.organizationType);
 		const inviteCode = sanitizeInviteCode(data.inviteCode);
-		const inviteEmail = data.inviteEmail?.trim().toLowerCase();
+		const inviteEmails = getInviteEmails(data);
 
 		if (organizationName.length < 2) {
 			throw new Error("Enter your organization name.");
@@ -185,14 +199,50 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 			});
 		}
 
-		if (inviteEmail) {
-			await db.insert(organizationInvite).values({
-				id: createId(),
-				organizationId: workspace.id,
-				email: inviteEmail,
-				inviteCode: workspace.inviteCode,
-				invitedByUserId: session.user.id,
-			});
+		if (inviteEmails.length > 0) {
+			await db.insert(organizationInvite).values(
+				inviteEmails.map((inviteEmail) => ({
+					id: createId(),
+					organizationId: workspace.id,
+					email: inviteEmail,
+					inviteCode: workspace.inviteCode,
+					invitedByUserId: session.user.id,
+				})),
+			);
+
+			const [{ getRequest }, { sendOrganizationInviteEmail }] =
+				await Promise.all([
+					import("@tanstack/react-start/server"),
+					import("#/lib/email.ts"),
+				]);
+			const inviteUrl = new URL("/signup", getRequest().url);
+			inviteUrl.searchParams.set("inviteCode", workspace.inviteCode);
+
+			await Promise.all(
+				inviteEmails.map(async (inviteEmail) => {
+					try {
+						const delivery = await sendOrganizationInviteEmail({
+							inviteCode: workspace.inviteCode,
+							inviteUrl: inviteUrl.toString(),
+							invitedByName: session.user.name,
+							organizationName,
+							to: inviteEmail,
+						});
+
+						if (delivery.status === "skipped") {
+							console.info("Organization invite email skipped.", {
+								reason: delivery.reason,
+								to: inviteEmail,
+							});
+						}
+					} catch (error) {
+						console.error("Could not send organization invite email.", {
+							error,
+							to: inviteEmail,
+						});
+					}
+				}),
+			);
 		}
 
 		return {

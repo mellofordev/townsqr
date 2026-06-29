@@ -7,8 +7,11 @@ import { Input } from "#/components/ui/input.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { authClient } from "#/lib/auth-client.ts";
 import { authSessionQueryKey } from "#/lib/auth-session.ts";
+import { acceptOrganizationInvite } from "#/lib/invites.ts";
+import { onboardingStatusQueryKey } from "#/lib/onboarding.ts";
 
 interface AuthFormProps {
+	inviteCode?: string;
 	mode: "login" | "signup";
 }
 
@@ -45,7 +48,7 @@ function getFallbackName(email: string) {
 	return email.split("@")[0] || "TownSqr member";
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ inviteCode, mode }: AuthFormProps) {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const [showSignupPassword, setShowSignupPassword] = React.useState(false);
@@ -54,6 +57,14 @@ export function AuthForm({ mode }: AuthFormProps) {
 	const [isGooglePending, setIsGooglePending] = React.useState(false);
 	const isSignup = mode === "signup";
 	const shouldShowPassword = !isSignup || showSignupPassword;
+	const signupRedirectPath =
+		isSignup && inviteCode
+			? `/join?inviteCode=${encodeURIComponent(inviteCode)}`
+			: "/onboarding";
+	const signupErrorPath =
+		isSignup && inviteCode
+			? `/signup?inviteCode=${encodeURIComponent(inviteCode)}`
+			: "/signup";
 
 	async function handleGoogleSignIn() {
 		setError(null);
@@ -62,8 +73,8 @@ export function AuthForm({ mode }: AuthFormProps) {
 		try {
 			const result = await authClient.signIn.social({
 				provider: "google",
-				callbackURL: isSignup ? "/onboarding" : "/",
-				errorCallbackURL: isSignup ? "/signup" : "/login",
+				callbackURL: isSignup ? signupRedirectPath : "/",
+				errorCallbackURL: isSignup ? signupErrorPath : "/login",
 				requestSignUp: isSignup,
 			});
 
@@ -113,9 +124,21 @@ export function AuthForm({ mode }: AuthFormProps) {
 			}
 
 			await queryClient.invalidateQueries({ queryKey: authSessionQueryKey });
-			await navigate({ to: isSignup ? "/onboarding" : "/" });
-		} catch {
-			setError("Could not continue. Try again.");
+
+			if (isSignup && inviteCode) {
+				await acceptOrganizationInvite({ data: { inviteCode } });
+				await queryClient.invalidateQueries({
+					queryKey: onboardingStatusQueryKey,
+				});
+			}
+
+			await navigate({ to: isSignup && !inviteCode ? "/onboarding" : "/" });
+		} catch (caughtError) {
+			setError(
+				caughtError instanceof Error
+					? caughtError.message
+					: "Could not continue. Try again.",
+			);
 		} finally {
 			setIsPending(false);
 		}
@@ -130,7 +153,9 @@ export function AuthForm({ mode }: AuthFormProps) {
 					</h1>
 					{isSignup ? (
 						<p className="mt-2 max-w-xs text-base font-medium leading-snug text-muted-foreground">
-							Get started with a focused place for work conversations.
+							{inviteCode
+								? "Create your account to join the invited workspace."
+								: "Get started with a focused place for work conversations."}
 						</p>
 					) : null}
 				</div>

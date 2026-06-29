@@ -87,7 +87,9 @@ function Home() {
 									<Link to="/login">Log in</Link>
 								</Button>
 								<Button asChild className="rounded-md" size="sm">
-									<Link to="/signup">Sign up</Link>
+									<Link search={{ inviteCode: undefined }} to="/signup">
+										Sign up
+									</Link>
 								</Button>
 							</>
 						)}
@@ -126,7 +128,9 @@ function Home() {
 								</p>
 							</div>
 							<Button asChild className="rounded-md">
-								<Link to="/signup">Create account</Link>
+								<Link search={{ inviteCode: undefined }} to="/signup">
+									Create account
+								</Link>
 							</Button>
 						</div>
 					)}

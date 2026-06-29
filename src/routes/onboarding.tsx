@@ -8,6 +8,7 @@ import {
 } from "motion/react";
 import * as React from "react";
 
+import { InviteEmailInput } from "#/components/onboarding/email-input.tsx";
 import { OnboardingPreview } from "#/components/onboarding/preview/index.ts";
 import { Button } from "#/components/ui/button.tsx";
 import { Card } from "#/components/ui/card.tsx";
@@ -27,6 +28,8 @@ import { cn } from "#/lib/utils.ts";
 const ONBOARDING_EASE_OUT: [number, number, number, number] = [
 	0.23, 1, 0.32, 1,
 ];
+const EMAIL_SPLIT_PATTERN = /[\s,;]+/;
+const SIMPLE_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type StepDirection = 1 | -1;
 
@@ -64,6 +67,18 @@ function createInviteCode() {
 	);
 }
 
+function normalizeEmail(email: string) {
+	return email.trim().toLowerCase();
+}
+
+function getEmailEntries(value: string) {
+	return value.split(EMAIL_SPLIT_PATTERN).map(normalizeEmail).filter(Boolean);
+}
+
+function isEmailAddress(value: string) {
+	return SIMPLE_EMAIL_PATTERN.test(value);
+}
+
 function OnboardingPage() {
 	useOnboardingStatus();
 
@@ -74,7 +89,8 @@ function OnboardingPage() {
 	const [organizationType, setOrganizationType] =
 		React.useState<OrganizationType>("startup");
 	const [inviteCode, setInviteCode] = React.useState("");
-	const [inviteEmail, setInviteEmail] = React.useState("");
+	const [inviteEmails, setInviteEmails] = React.useState<string[]>([]);
+	const [inviteEmailInput, setInviteEmailInput] = React.useState("");
 	const [error, setError] = React.useState<string | null>(null);
 	const [isPending, setIsPending] = React.useState(false);
 	const [direction, setDirection] = React.useState<StepDirection>(1);
@@ -129,18 +145,74 @@ function OnboardingPage() {
 		setStep(1);
 	}
 
+	function addInviteEmails(value: string) {
+		const entries = getEmailEntries(value);
+
+		if (entries.length === 0) {
+			return true;
+		}
+
+		const invalidEmail = entries.find((entry) => !isEmailAddress(entry));
+
+		if (invalidEmail) {
+			setError(`Check the email address: ${invalidEmail}`);
+			return false;
+		}
+
+		setInviteEmails((currentEmails) => {
+			const nextEmails = new Set(currentEmails);
+
+			for (const entry of entries) {
+				nextEmails.add(entry);
+			}
+
+			return Array.from(nextEmails);
+		});
+		setInviteEmailInput("");
+		setError(null);
+
+		return true;
+	}
+
+	function removeInviteEmail(email: string) {
+		setInviteEmails((currentEmails) =>
+			currentEmails.filter((currentEmail) => currentEmail !== email),
+		);
+	}
+
+	function getInviteEmailsForSubmit() {
+		const pendingEmail = normalizeEmail(inviteEmailInput);
+
+		if (!pendingEmail) {
+			return inviteEmails;
+		}
+
+		const pendingEntries = getEmailEntries(pendingEmail);
+		const invalidEmail = pendingEntries.find((entry) => !isEmailAddress(entry));
+
+		if (invalidEmail) {
+			throw new Error(`Check the email address: ${invalidEmail}`);
+		}
+
+		return Array.from(new Set([...inviteEmails, ...pendingEntries]));
+	}
+
 	async function handleFinish(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setError(null);
-		setIsPending(true);
 
 		try {
+			const inviteEmailsForSubmit = getInviteEmailsForSubmit();
+			setInviteEmails(inviteEmailsForSubmit);
+			setInviteEmailInput("");
+			setIsPending(true);
+
 			await completeOnboarding({
 				data: {
 					organizationName,
 					organizationType,
 					inviteCode,
-					inviteEmail,
+					inviteEmails: inviteEmailsForSubmit,
 				},
 			});
 			await queryClient.invalidateQueries({
@@ -243,18 +315,13 @@ function OnboardingPage() {
 										</p>
 									</Card>
 
-									<div className="grid gap-2">
-										<Label htmlFor="invite-email">Invite by email</Label>
-										<Input
-											autoComplete="email"
-											id="invite-email"
-											name="inviteEmail"
-											onChange={(event) => setInviteEmail(event.target.value)}
-											placeholder="teammate@company.com"
-											type="email"
-											value={inviteEmail}
-										/>
-									</div>
+									<InviteEmailInput
+										emails={inviteEmails}
+										onAddEmails={addInviteEmails}
+										onChangeInput={setInviteEmailInput}
+										onRemoveEmail={removeInviteEmail}
+										value={inviteEmailInput}
+									/>
 
 									{error ? <FormError message={error} /> : null}
 
