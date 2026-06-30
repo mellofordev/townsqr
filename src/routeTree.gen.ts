@@ -10,10 +10,15 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as JoinRouteImport } from './routes/join'
+import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChannelsChannelIdRouteImport } from './routes/channels/$channelId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const SignupRoute = SignupRouteImport.update({
@@ -21,9 +26,19 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResourcesRoute = ResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -31,14 +46,29 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KnowledgeRoute = KnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinRoute = JoinRouteImport.update({
   id: '/join',
   path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatRoute = ChatRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChannelsChannelIdRoute = ChannelsChannelIdRouteImport.update({
+  id: '/channels/$channelId',
+  path: '/channels/$channelId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -49,51 +79,97 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/join': typeof JoinRoute
+  '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/resources': typeof ResourcesRoute
   '/signup': typeof SignupRoute
+  '/channels/$channelId': typeof ChannelsChannelIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/join': typeof JoinRoute
+  '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/resources': typeof ResourcesRoute
   '/signup': typeof SignupRoute
+  '/channels/$channelId': typeof ChannelsChannelIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/join': typeof JoinRoute
+  '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
+  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
+  '/resources': typeof ResourcesRoute
   '/signup': typeof SignupRoute
+  '/channels/$channelId': typeof ChannelsChannelIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/join' | '/login' | '/onboarding' | '/signup' | '/api/auth/$'
+    | '/'
+    | '/chat'
+    | '/join'
+    | '/knowledge'
+    | '/login'
+    | '/notifications'
+    | '/onboarding'
+    | '/resources'
+    | '/signup'
+    | '/channels/$channelId'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/join' | '/login' | '/onboarding' | '/signup' | '/api/auth/$'
+  to:
+    | '/'
+    | '/chat'
+    | '/join'
+    | '/knowledge'
+    | '/login'
+    | '/notifications'
+    | '/onboarding'
+    | '/resources'
+    | '/signup'
+    | '/channels/$channelId'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/chat'
     | '/join'
+    | '/knowledge'
     | '/login'
+    | '/notifications'
     | '/onboarding'
+    | '/resources'
     | '/signup'
+    | '/channels/$channelId'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChatRoute: typeof ChatRoute
   JoinRoute: typeof JoinRoute
+  KnowledgeRoute: typeof KnowledgeRoute
   LoginRoute: typeof LoginRoute
+  NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
+  ResourcesRoute: typeof ResourcesRoute
   SignupRoute: typeof SignupRoute
+  ChannelsChannelIdRoute: typeof ChannelsChannelIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -106,11 +182,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/resources': {
+      id: '/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof ResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -120,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/knowledge': {
+      id: '/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/join': {
       id: '/join'
       path: '/join'
@@ -127,11 +224,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/channels/$channelId': {
+      id: '/channels/$channelId'
+      path: '/channels/$channelId'
+      fullPath: '/channels/$channelId'
+      preLoaderRoute: typeof ChannelsChannelIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -146,10 +257,15 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChatRoute: ChatRoute,
   JoinRoute: JoinRoute,
+  KnowledgeRoute: KnowledgeRoute,
   LoginRoute: LoginRoute,
+  NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
+  ResourcesRoute: ResourcesRoute,
   SignupRoute: SignupRoute,
+  ChannelsChannelIdRoute: ChannelsChannelIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
