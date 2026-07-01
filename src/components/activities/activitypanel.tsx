@@ -1,7 +1,6 @@
 import {
   CakeIcon,
   CalendarDaysIcon,
-  ChatBubbleLeftRightIcon,
   HandThumbUpIcon,
   HeartIcon,
   SparklesIcon,
@@ -11,7 +10,6 @@ import type * as React from "react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -24,27 +22,16 @@ import {
   SidebarSeparator,
 } from "#/components/ui/sidebar.tsx";
 import { cn } from "#/lib/utils.ts";
+import type {
+  ActivitySummaryItem,
+  HeroIcon,
+  TrendingActivityItem,
+} from "#/types/index.ts";
 
-type HeroIcon = React.ForwardRefExoticComponent<
-  React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & {
-    title?: string;
-    titleId?: string;
-  } & React.RefAttributes<SVGSVGElement>
->;
-
-export type ActivitySummaryItem = {
-  id: string;
-  label: string;
-  count: string | number;
-  icon: HeroIcon;
-};
-
-export type TrendingActivityItem = {
-  id: string;
-  label: string;
-  count: string;
-  reactions: Array<"celebrate" | "like" | "love">;
-};
+export type {
+  ActivitySummaryItem,
+  TrendingActivityItem,
+} from "#/types/index.ts";
 
 const defaultSummaryItems: ActivitySummaryItem[] = [
   {
@@ -120,11 +107,10 @@ export function ActivityPanel({
   className,
   summaryItems = defaultSummaryItems,
   trendingItems = defaultTrendingItems,
-  unreadChats = 3,
 }: ActivityPanelProps) {
   return (
     <SidebarProvider
-      className="min-h-svh w-auto flex-none"
+      className="h-svh min-h-0 w-auto flex-none overflow-hidden"
       style={
         {
           "--sidebar-width": "20rem",
@@ -133,7 +119,10 @@ export function ActivityPanel({
       }
     >
       <Sidebar
-        className={cn("border-l border-sidebar-border bg-white", className)}
+        className={cn(
+          "h-svh min-h-0 border-l border-sidebar-border bg-white",
+          className,
+        )}
         collapsible="none"
         side="right"
       >
@@ -142,7 +131,7 @@ export function ActivityPanel({
           <h2 className="text-lg font-semibold tracking-normal">Activity</h2>
         </SidebarHeader>
 
-        <SidebarContent>
+        <SidebarContent className="overscroll-contain">
           <SidebarGroup>
             <SidebarGroupLabel>Events & Celebrations</SidebarGroupLabel>
             <SidebarGroupContent>

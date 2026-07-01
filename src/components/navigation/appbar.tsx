@@ -26,27 +26,9 @@ import {
   TooltipTrigger,
 } from "#/components/ui/tooltip.tsx";
 import { cn } from "#/lib/utils.ts";
+import type { AppbarNavItem, AppbarUser } from "#/types/index.ts";
 
-export type AppbarNavItem = {
-  id: string;
-  label: string;
-  to: "/" | "/notifications" | "/chat";
-  icon: HeroIcon;
-  badgeLabel?: string;
-};
-
-type HeroIcon = React.ForwardRefExoticComponent<
-  React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & {
-    title?: string;
-    titleId?: string;
-  } & React.RefAttributes<SVGSVGElement>
->;
-
-export type AppbarUser = {
-  name: string;
-  imageUrl?: string;
-  status?: "online" | "away" | "offline";
-};
+export type { AppbarNavItem, AppbarUser } from "#/types/index.ts";
 
 const defaultAppbarItems: AppbarNavItem[] = [
   {
@@ -94,7 +76,7 @@ export function Appbar({
   return (
     <TooltipProvider>
       <SidebarProvider
-        className="min-h-svh w-auto flex-none"
+        className="h-svh min-h-0 w-auto flex-none overflow-hidden"
         style={
           {
             "--sidebar-width": "4.75rem",
@@ -103,7 +85,10 @@ export function Appbar({
         }
       >
         <Sidebar
-          className={cn("border-r border-sidebar-border bg-white", className)}
+          className={cn(
+            "h-svh min-h-0 border-r border-sidebar-border bg-white",
+            className,
+          )}
           collapsible="none"
         >
           <SidebarHeader className="items-center px-2 py-3">

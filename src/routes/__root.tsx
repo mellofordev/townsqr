@@ -10,6 +10,7 @@ import { ActivityPanel } from "#/components/activities/activitypanel.tsx";
 import { Appbar } from "#/components/navigation/appbar.tsx";
 import { Sidesheet } from "#/components/navigation/sidesheet.tsx";
 import { useAuthSession } from "#/lib/auth-session.ts";
+import { useWorkspaceSummary } from "#/lib/workspace.ts";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -66,10 +67,16 @@ function RootLayout() {
 
 function AppShell({ pathname }: { pathname: string }) {
 	const { data: session } = useAuthSession();
+	const { data: workspaceSummary } = useWorkspaceSummary();
+	const channels =
+		workspaceSummary?.channels.map((channel) => ({
+			id: channel.slug,
+			name: channel.name,
+		})) ?? [];
 	const activeChannel = getActiveChannel(pathname);
 
 	return (
-		<div className="flex min-h-svh bg-background text-foreground">
+		<div className="flex h-svh min-h-0 w-full max-w-full overflow-hidden bg-background text-foreground">
 			<Appbar
 				activeItem={getActiveAppbarItem(pathname)}
 				user={{
@@ -81,8 +88,11 @@ function AppShell({ pathname }: { pathname: string }) {
 			<Sidesheet
 				activeChannel={activeChannel}
 				activeItem={getActiveSidesheetItem(pathname)}
+				channels={channels}
+				memberCount={workspaceSummary?.counts.members}
+				workspaceName={workspaceSummary?.organization.name}
 			/>
-			<main className="min-w-0 flex-1 overflow-y-auto">
+			<main className="h-svh min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
 				<Outlet />
 			</main>
 			<ActivityPanel className="hidden xl:flex" />
@@ -117,7 +127,7 @@ function getActiveSidesheetItem(pathname: string) {
 function getActiveChannel(pathname: string) {
 	const match = /^\/channels\/([^/]+)/.exec(pathname);
 
-	return match?.[1] ?? "company-news";
+	return match?.[1];
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

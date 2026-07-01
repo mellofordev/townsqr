@@ -15,6 +15,13 @@
       "when": 1782566396437,
       "tag": "0001_quiet_cloak",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782843397315,
+      "tag": "0002_handy_leo",
+      "breakpoints": true
     }
   ]
 }

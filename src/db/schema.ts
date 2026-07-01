@@ -143,6 +143,34 @@ export const organizationMember = pgTable(
 	],
 );
 
+export const organizationChannel = pgTable(
+	"organization_channel",
+	{
+		id: text("id").primaryKey(),
+		organizationId: text("organization_id")
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
+		name: text("name").notNull(),
+		slug: text("slug").notNull(),
+		createdByUserId: text("created_by_user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+		updatedAt: timestamp("updated_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		uniqueIndex("organization_channel_org_slug_idx").on(
+			table.organizationId,
+			table.slug,
+		),
+		index("organization_channel_organization_id_idx").on(table.organizationId),
+	],
+);
+
 export const organizationInvite = pgTable(
 	"organization_invite",
 	{
@@ -170,4 +198,5 @@ export type User = typeof user.$inferSelect;
 export type Session = typeof session.$inferSelect;
 export type Organization = typeof organization.$inferSelect;
 export type OrganizationMember = typeof organizationMember.$inferSelect;
+export type OrganizationChannel = typeof organizationChannel.$inferSelect;
 export type OrganizationInvite = typeof organizationInvite.$inferSelect;

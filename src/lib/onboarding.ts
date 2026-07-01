@@ -5,45 +5,16 @@ import { eq } from "drizzle-orm";
 import { getDb } from "#/db/index.ts";
 import {
 	organization,
+	organizationChannel,
 	organizationInvite,
 	organizationMember,
 } from "#/db/schema.ts";
-
-const organizationTypes = [
-	"startup",
-	"small-business",
-	"enterprise",
-	"nonprofit",
-	"community",
-] as const;
-
-export type OrganizationType = (typeof organizationTypes)[number];
-
-export const organizationTypeOptions = [
-	{ value: "startup", label: "Startup" },
-	{ value: "small-business", label: "Small business" },
-	{ value: "enterprise", label: "Enterprise" },
-	{ value: "nonprofit", label: "Nonprofit" },
-	{ value: "community", label: "Community" },
-] satisfies Array<{ value: OrganizationType; label: string }>;
-
-export interface OnboardingStatus {
-	isAuthenticated: boolean;
-	organization: {
-		id: string;
-		name: string;
-		type: string;
-		inviteCode: string;
-	} | null;
-}
-
-interface CompleteOnboardingData {
-	inviteEmail?: string;
-	inviteEmails?: string[];
-	organizationName: string;
-	organizationType: string;
-	inviteCode: string;
-}
+import {
+	organizationTypes,
+	type CompleteOnboardingData,
+	type OnboardingStatus,
+	type OrganizationType,
+} from "#/types/index.ts";
 
 export const onboardingStatusQueryKey = ["onboarding", "status"] as const;
 
@@ -80,6 +51,33 @@ function getInviteEmails(data: CompleteOnboardingData) {
 			...(data.inviteEmail ? [normalizeInviteEmail(data.inviteEmail)] : []),
 		]),
 	).filter(Boolean);
+}
+
+function normalizeChannelName(channelName: string) {
+	return channelName.trim().replace(/\s+/g, " ");
+}
+
+function getChannelSlug(channelName: string) {
+	return normalizeChannelName(channelName)
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, "-")
+		.replace(/^-+|-+$/g, "")
+		.slice(0, 64);
+}
+
+function getChannelNames(data: CompleteOnboardingData) {
+	const channelNames = data.channelNames?.length
+		? data.channelNames
+		: ["general", "announcements"];
+
+	return Array.from(
+		new Map(
+			channelNames
+				.map(normalizeChannelName)
+				.filter(Boolean)
+				.map((channelName) => [channelName.toLowerCase(), channelName]),
+		).values(),
+	);
 }
 
 function assertOrganizationType(value: string): OrganizationType {
@@ -135,6 +133,7 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 		const organizationName = data.organizationName.trim();
 		const organizationType = assertOrganizationType(data.organizationType);
 		const inviteCode = sanitizeInviteCode(data.inviteCode);
+		const channelNames = getChannelNames(data);
 		const inviteEmails = getInviteEmails(data);
 
 		if (organizationName.length < 2) {
@@ -143,6 +142,39 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 
 		if (inviteCode.length < 6) {
 			throw new Error("Invite code is invalid.");
+		}
+
+		if (channelNames.length === 0) {
+			throw new Error("Add at least one channel.");
+		}
+
+		const invalidChannelName = channelNames.find(
+			(channelName) => channelName.length < 2 || channelName.length > 40,
+		);
+
+		if (invalidChannelName) {
+			throw new Error("Keep channel names between 2 and 40 characters.");
+		}
+
+		const channelRecords = Array.from(
+			new Map(
+				channelNames.map((channelName) => {
+					const slug = getChannelSlug(channelName);
+
+					return [
+						slug,
+						{
+							name: channelName,
+							slug,
+						},
+					];
+				}),
+			).values(),
+		);
+		const invalidChannelSlug = channelRecords.find(({ slug }) => !slug);
+
+		if (invalidChannelSlug) {
+			throw new Error("Use letters or numbers in channel names.");
 		}
 
 		const db = getDb();
@@ -198,6 +230,18 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 				role: "owner",
 			});
 		}
+
+		await db
+			.insert(organizationChannel)
+			.values(
+				channelRecords.map((channelRecord) => ({
+					id: createId(),
+					organizationId: workspace.id,
+					createdByUserId: session.user.id,
+					...channelRecord,
+				})),
+			)
+			.onConflictDoNothing();
 
 		if (inviteEmails.length > 0) {
 			await db.insert(organizationInvite).values(
