@@ -92,6 +92,7 @@ export const organizationInvite = pgTable(
 			.references(() => organization.id, { onDelete: "cascade" }),
 		email: text("email").notNull(),
 		inviteCode: text("invite_code").notNull(),
+		role: text("role").default("member").notNull(),
 		status: text("status").default("pending").notNull(),
 		invitedByUserId: text("invited_by_user_id")
 			.notNull()
@@ -106,7 +107,33 @@ export const organizationInvite = pgTable(
 	],
 );
 
+export const organizationInviteChannel = pgTable(
+	"organization_invite_channel",
+	{
+		id: text("id").primaryKey(),
+		inviteId: text("invite_id")
+			.notNull()
+			.references(() => organizationInvite.id, { onDelete: "cascade" }),
+		channelId: text("channel_id")
+			.notNull()
+			.references(() => organizationChannel.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.defaultNow()
+			.notNull(),
+	},
+	(table) => [
+		uniqueIndex("organization_invite_channel_invite_channel_idx").on(
+			table.inviteId,
+			table.channelId,
+		),
+		index("organization_invite_channel_invite_id_idx").on(table.inviteId),
+		index("organization_invite_channel_channel_id_idx").on(table.channelId),
+	],
+);
+
 export type Organization = typeof organization.$inferSelect;
 export type OrganizationMember = typeof organizationMember.$inferSelect;
 export type OrganizationChannel = typeof organizationChannel.$inferSelect;
 export type OrganizationInvite = typeof organizationInvite.$inferSelect;
+export type OrganizationInviteChannel =
+	typeof organizationInviteChannel.$inferSelect;

@@ -2,7 +2,6 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 
-import { getDb } from "#/db/index.ts";
 import {
 	organization,
 	organizationChannel,
@@ -10,38 +9,33 @@ import {
 	organizationMember,
 } from "#/db/schema.ts";
 import {
-	organizationTypes,
+	createRequestContext,
+	getWorkspaceContext,
+	requireSession,
+} from "#/server/context.ts";
+import { appError } from "#/server/errors.ts";
+import { validateCompleteOnboarding } from "#/server/validators/onboarding.ts";
+import {
+	getChannelSlug,
+	normalizeChannelName,
+	normalizeEmail,
+	sanitizeInviteCode,
+} from "#/server/validators/shared.ts";
+import {
 	type CompleteOnboardingData,
 	type OnboardingStatus,
 	type OrganizationType,
+	organizationTypes,
 } from "#/types/index.ts";
 
 export const onboardingStatusQueryKey = ["onboarding", "status"] as const;
-
-async function getServerSession() {
-	const [{ getRequest }, { auth }] = await Promise.all([
-		import("@tanstack/react-start/server"),
-		import("#/lib/auth.ts"),
-	]);
-
-	return auth.api.getSession({
-		headers: getRequest().headers,
-	});
-}
 
 function createId() {
 	return crypto.randomUUID();
 }
 
-function sanitizeInviteCode(code: string) {
-	return code
-		.toUpperCase()
-		.replace(/[^A-Z0-9]/g, "")
-		.slice(0, 8);
-}
-
 function normalizeInviteEmail(email: string) {
-	return email.trim().toLowerCase();
+	return normalizeEmail(email);
 }
 
 function getInviteEmails(data: CompleteOnboardingData) {
@@ -51,18 +45,6 @@ function getInviteEmails(data: CompleteOnboardingData) {
 			...(data.inviteEmail ? [normalizeInviteEmail(data.inviteEmail)] : []),
 		]),
 	).filter(Boolean);
-}
-
-function normalizeChannelName(channelName: string) {
-	return channelName.trim().replace(/\s+/g, " ");
-}
-
-function getChannelSlug(channelName: string) {
-	return normalizeChannelName(channelName)
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "")
-		.slice(0, 64);
 }
 
 function getChannelNames(data: CompleteOnboardingData) {
@@ -85,34 +67,21 @@ function assertOrganizationType(value: string): OrganizationType {
 		return value as OrganizationType;
 	}
 
-	throw new Error("Select an organization type.");
+	throw appError("ONBOARDING_INVALID", 400, "Select an organization type.");
 }
 
 export const getOnboardingStatus = createServerFn({ method: "GET" }).handler(
 	async (): Promise<OnboardingStatus> => {
-		const session = await getServerSession();
+		const ctx = await createRequestContext();
 
-		if (!session) {
+		if (!ctx.session) {
 			return {
 				isAuthenticated: false,
 				organization: null,
 			};
 		}
 
-		const [workspace] = await getDb()
-			.select({
-				id: organization.id,
-				name: organization.name,
-				type: organization.type,
-				inviteCode: organization.inviteCode,
-			})
-			.from(organizationMember)
-			.innerJoin(
-				organization,
-				eq(organizationMember.organizationId, organization.id),
-			)
-			.where(eq(organizationMember.userId, session.user.id))
-			.limit(1);
+		const workspace = await getWorkspaceContext(ctx);
 
 		return {
 			isAuthenticated: true,
@@ -122,13 +91,10 @@ export const getOnboardingStatus = createServerFn({ method: "GET" }).handler(
 );
 
 export const completeOnboarding = createServerFn({ method: "POST" })
-	.validator((data: CompleteOnboardingData) => data)
+	.validator(validateCompleteOnboarding)
 	.handler(async ({ data }) => {
-		const session = await getServerSession();
-
-		if (!session) {
-			throw new Error("You need to be signed in to finish setup.");
-		}
+		const ctx = await createRequestContext();
+		const session = requireSession(ctx);
 
 		const organizationName = data.organizationName.trim();
 		const organizationType = assertOrganizationType(data.organizationType);
@@ -137,15 +103,19 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 		const inviteEmails = getInviteEmails(data);
 
 		if (organizationName.length < 2) {
-			throw new Error("Enter your organization name.");
+			throw appError(
+				"ONBOARDING_INVALID",
+				400,
+				"Enter your organization name.",
+			);
 		}
 
 		if (inviteCode.length < 6) {
-			throw new Error("Invite code is invalid.");
+			throw appError("INVITE_INVALID", 400, "Invite code is invalid.");
 		}
 
 		if (channelNames.length === 0) {
-			throw new Error("Add at least one channel.");
+			throw appError("CHANNEL_INVALID", 400, "Add at least one channel.");
 		}
 
 		const invalidChannelName = channelNames.find(
@@ -153,7 +123,11 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 		);
 
 		if (invalidChannelName) {
-			throw new Error("Keep channel names between 2 and 40 characters.");
+			throw appError(
+				"CHANNEL_INVALID",
+				400,
+				"Keep channel names between 2 and 40 characters.",
+			);
 		}
 
 		const channelRecords = Array.from(
@@ -174,10 +148,14 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 		const invalidChannelSlug = channelRecords.find(({ slug }) => !slug);
 
 		if (invalidChannelSlug) {
-			throw new Error("Use letters or numbers in channel names.");
+			throw appError(
+				"CHANNEL_INVALID",
+				400,
+				"Use letters or numbers in channel names.",
+			);
 		}
 
-		const db = getDb();
+		const db = ctx.db;
 		const [existingWorkspace] = await db
 			.select({
 				id: organization.id,
@@ -210,7 +188,11 @@ export const completeOnboarding = createServerFn({ method: "POST" })
 			)[0];
 
 		if (!workspace) {
-			throw new Error("Could not create organization.");
+			throw appError(
+				"ONBOARDING_INVALID",
+				500,
+				"Could not create organization.",
+			);
 		}
 
 		if (existingWorkspace) {

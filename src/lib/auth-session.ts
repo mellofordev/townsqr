@@ -6,6 +6,7 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 
 import type { authClient } from "#/lib/auth-client.ts";
+import { createRequestContext } from "#/server/context.ts";
 
 export type AuthSession = (typeof authClient.$Infer)["Session"] | null;
 
@@ -13,14 +14,9 @@ export const authSessionQueryKey = ["auth", "session"] as const;
 
 export const getCurrentSession = createServerFn({ method: "GET" }).handler(
 	async () => {
-		const [{ getRequest }, { auth }] = await Promise.all([
-			import("@tanstack/react-start/server"),
-			import("#/lib/auth.ts"),
-		]);
+		const ctx = await createRequestContext();
 
-		return (await auth.api.getSession({
-			headers: getRequest().headers,
-		})) as AuthSession;
+		return ctx.session as AuthSession;
 	},
 );
 

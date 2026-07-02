@@ -1,6 +1,8 @@
 import { neon } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-http";
 
+import { getRequiredEnvValue } from "#/server/env.ts";
+
 import * as schema from "./schema.ts";
 
 function createDatabase(databaseUrl: string) {
@@ -20,11 +22,7 @@ function assertNeonDatabaseUrl(databaseUrl: string) {
 }
 
 export function getDb() {
-	const databaseUrl = process.env.DATABASE_URL;
-
-	if (!databaseUrl) {
-		throw new Error("DATABASE_URL is not set");
-	}
+	const databaseUrl = getRequiredEnvValue("DATABASE_URL");
 
 	assertNeonDatabaseUrl(databaseUrl);
 

@@ -7,8 +7,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card.tsx";
+import { requireWorkspaceRoute } from "#/lib/route-guards.ts";
 
 export const Route = createFileRoute("/resources")({
+	loader: requireWorkspaceRoute,
 	component: ResourcesPage,
 	head: () => ({
 		meta: [{ title: "Resources | TownSqr" }],

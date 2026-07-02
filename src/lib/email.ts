@@ -1,5 +1,6 @@
-import { env } from "cloudflare:workers";
 import { Resend } from "resend";
+
+import { type AppEnv, getEnv } from "#/server/env.ts";
 
 type EmailAddress =
 	| string
@@ -7,15 +8,6 @@ type EmailAddress =
 			email: string;
 			name: string;
 	  };
-
-interface EmailWorkerEnv extends Record<string, unknown> {
-	EMAIL_FROM?: string;
-	EMAIL_REPLY_TO?: string;
-	RESEND_API_KEY?: string;
-	TOWNSQR_EMAIL_ENABLED?: string;
-	TOWNSQR_EMAIL_FROM?: string;
-	TOWNSQR_EMAIL_REPLY_TO?: string;
-}
 
 export interface SendEmailInput {
 	bcc?: EmailAddress | EmailAddress[];
@@ -56,11 +48,7 @@ function getStringEnvValue(value: unknown) {
 	return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function getEmailEnv() {
-	return env as EmailWorkerEnv;
-}
-
-function isEmailDisabled(emailEnv: EmailWorkerEnv) {
+function isEmailDisabled(emailEnv: AppEnv) {
 	const enabled = getStringEnvValue(emailEnv.TOWNSQR_EMAIL_ENABLED);
 
 	return enabled === "0" || enabled?.toLowerCase() === "false";
@@ -69,7 +57,7 @@ function isEmailDisabled(emailEnv: EmailWorkerEnv) {
 let resendClient: Resend | undefined;
 let resendClientApiKey: string | undefined;
 
-function getDefaultFromAddress(emailEnv: EmailWorkerEnv) {
+function getDefaultFromAddress(emailEnv: AppEnv) {
 	return (
 		getStringEnvValue(emailEnv.TOWNSQR_EMAIL_FROM) ??
 		getStringEnvValue(emailEnv.EMAIL_FROM) ??
@@ -77,7 +65,7 @@ function getDefaultFromAddress(emailEnv: EmailWorkerEnv) {
 	);
 }
 
-function getDefaultReplyToAddress(emailEnv: EmailWorkerEnv) {
+function getDefaultReplyToAddress(emailEnv: AppEnv) {
 	return (
 		getStringEnvValue(emailEnv.TOWNSQR_EMAIL_REPLY_TO) ??
 		getStringEnvValue(emailEnv.EMAIL_REPLY_TO)
@@ -117,7 +105,7 @@ function getResendClient(apiKey: string) {
 export async function sendEmail(
 	input: SendEmailInput,
 ): Promise<EmailDeliveryResult> {
-	const emailEnv = getEmailEnv();
+	const emailEnv = getEnv();
 
 	if (isEmailDisabled(emailEnv)) {
 		return { reason: "disabled", status: "skipped" };

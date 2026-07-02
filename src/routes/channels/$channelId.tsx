@@ -7,8 +7,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card.tsx";
+import { requireWorkspaceRoute } from "#/lib/route-guards.ts";
 
 export const Route = createFileRoute("/channels/$channelId")({
+	loader: requireWorkspaceRoute,
 	component: ChannelPage,
 	head: ({ params }) => ({
 		meta: [{ title: `${formatChannelName(params.channelId)} | TownSqr` }],

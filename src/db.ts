@@ -1,9 +1,11 @@
 import { neon } from "@neondatabase/serverless";
 
+import { getEnvValue } from "#/server/env.ts";
+
 let client: ReturnType<typeof neon>;
 
 export async function getClient() {
-	const databaseUrl = process.env.DATABASE_URL;
+	const databaseUrl = getEnvValue("DATABASE_URL");
 
 	if (!databaseUrl) {
 		return undefined;

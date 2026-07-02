@@ -19,7 +19,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarSeparator,
 } from "#/components/ui/sidebar.tsx";
 import { cn } from "#/lib/utils.ts";
 import type {
@@ -152,8 +151,6 @@ export function ActivityPanel({
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
-
-          <SidebarSeparator />
 
           <SidebarGroup>
             <SidebarGroupLabel>Trending Posts</SidebarGroupLabel>

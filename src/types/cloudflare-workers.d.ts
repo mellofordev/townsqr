@@ -1,3 +1,3 @@
 declare module "cloudflare:workers" {
-	export const env: Record<string, unknown>;
+	export const env: import("#/server/env.ts").AppEnv;
 }

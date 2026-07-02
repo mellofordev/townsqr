@@ -1,57 +1,31 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, eq } from "drizzle-orm";
 
-import { getDb } from "#/db/index.ts";
 import {
 	organization,
 	organizationInvite,
 	organizationMember,
 } from "#/db/schema.ts";
-
-interface AcceptOrganizationInviteData {
-	inviteCode: string;
-}
+import { createRequestContext, requireSession } from "#/server/context.ts";
+import { appError } from "#/server/errors.ts";
+import { validateAcceptOrganizationInvite } from "#/server/validators/invites.ts";
 
 function createId() {
 	return crypto.randomUUID();
 }
 
-function sanitizeInviteCode(code: string) {
-	return code
-		.toUpperCase()
-		.replace(/[^A-Z0-9]/g, "")
-		.slice(0, 8);
-}
-
-async function getServerSession() {
-	const [{ getRequest }, { auth }] = await Promise.all([
-		import("@tanstack/react-start/server"),
-		import("#/lib/auth.ts"),
-	]);
-
-	return auth.api.getSession({
-		headers: getRequest().headers,
-	});
-}
-
 export const acceptOrganizationInvite = createServerFn({ method: "POST" })
-	.validator((data: AcceptOrganizationInviteData) => data)
+	.validator(validateAcceptOrganizationInvite)
 	.handler(async ({ data }) => {
-		const session = await getServerSession();
-
-		if (!session) {
-			throw new Error(
-				"Sign in or create an account to join this organization.",
-			);
-		}
-
-		const inviteCode = sanitizeInviteCode(data.inviteCode);
+		const ctx = await createRequestContext();
+		const session = requireSession(ctx);
+		const inviteCode = data.inviteCode;
 
 		if (inviteCode.length < 6) {
-			throw new Error("Invite code is invalid.");
+			throw appError("INVITE_INVALID", 400, "Invite code is invalid.");
 		}
 
-		const db = getDb();
+		const db = ctx.db;
 		const [workspace] = await db
 			.select({
 				id: organization.id,
@@ -63,7 +37,7 @@ export const acceptOrganizationInvite = createServerFn({ method: "POST" })
 			.limit(1);
 
 		if (!workspace) {
-			throw new Error("Invite code was not found.");
+			throw appError("INVITE_NOT_FOUND", 404, "Invite code was not found.");
 		}
 
 		const [existingMembership] = await db
@@ -76,12 +50,24 @@ export const acceptOrganizationInvite = createServerFn({ method: "POST" })
 				),
 			)
 			.limit(1);
+		const [pendingInvite] = await db
+			.select({ role: organizationInvite.role })
+			.from(organizationInvite)
+			.where(
+				and(
+					eq(organizationInvite.organizationId, workspace.id),
+					eq(organizationInvite.email, session.user.email.toLowerCase()),
+					eq(organizationInvite.inviteCode, workspace.inviteCode),
+					eq(organizationInvite.status, "pending"),
+				),
+			)
+			.limit(1);
 
 		if (!existingMembership) {
 			await db.insert(organizationMember).values({
 				id: createId(),
 				organizationId: workspace.id,
-				role: "member",
+				role: pendingInvite?.role ?? "member",
 				userId: session.user.id,
 			});
 		}

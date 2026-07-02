@@ -12,13 +12,23 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as JoinRouteImport } from './routes/join'
-import { Route as ChatRouteImport } from './routes/chat'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings/index'
+import { Route as NotificationsIndexRouteImport } from './routes/notifications/index'
+import { Route as ChatIndexRouteImport } from './routes/chat/index'
+import { Route as SettingsOrganizationRouteImport } from './routes/settings/organization'
+import { Route as SettingsMembersRouteImport } from './routes/settings/members'
+import { Route as SettingsChannelsRouteImport } from './routes/settings/channels'
+import { Route as NotificationsUnreadRouteImport } from './routes/notifications/unread'
+import { Route as NotificationsMentionsRouteImport } from './routes/notifications/mentions'
+import { Route as NotificationsAnnouncementsRouteImport } from './routes/notifications/announcements'
+import { Route as ChatDirectRouteImport } from './routes/chat/direct'
 import { Route as ChannelsChannelIdRouteImport } from './routes/channels/$channelId'
+import { Route as NotificationsChannelsChannelIdRouteImport } from './routes/notifications/channels/$channelId'
+import { Route as ChatDmMemberIdRouteImport } from './routes/chat/dm/$memberId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const SignupRoute = SignupRouteImport.update({
@@ -36,11 +46,6 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
-const NotificationsRoute = NotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -56,19 +61,76 @@ const JoinRoute = JoinRouteImport.update({
   path: '/join',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChatRoute = ChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/settings/',
+  path: '/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsIndexRoute = NotificationsIndexRouteImport.update({
+  id: '/notifications/',
+  path: '/notifications/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatIndexRoute = ChatIndexRouteImport.update({
+  id: '/chat/',
+  path: '/chat/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsOrganizationRoute = SettingsOrganizationRouteImport.update({
+  id: '/settings/organization',
+  path: '/settings/organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsMembersRoute = SettingsMembersRouteImport.update({
+  id: '/settings/members',
+  path: '/settings/members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsChannelsRoute = SettingsChannelsRouteImport.update({
+  id: '/settings/channels',
+  path: '/settings/channels',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsUnreadRoute = NotificationsUnreadRouteImport.update({
+  id: '/notifications/unread',
+  path: '/notifications/unread',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsMentionsRoute = NotificationsMentionsRouteImport.update({
+  id: '/notifications/mentions',
+  path: '/notifications/mentions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsAnnouncementsRoute =
+  NotificationsAnnouncementsRouteImport.update({
+    id: '/notifications/announcements',
+    path: '/notifications/announcements',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ChatDirectRoute = ChatDirectRouteImport.update({
+  id: '/chat/direct',
+  path: '/chat/direct',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChannelsChannelIdRoute = ChannelsChannelIdRouteImport.update({
   id: '/channels/$channelId',
   path: '/channels/$channelId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsChannelsChannelIdRoute =
+  NotificationsChannelsChannelIdRouteImport.update({
+    id: '/notifications/channels/$channelId',
+    path: '/notifications/channels/$channelId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ChatDmMemberIdRoute = ChatDmMemberIdRouteImport.update({
+  id: '/chat/dm/$memberId',
+  path: '/chat/dm/$memberId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -79,98 +141,168 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/chat': typeof ChatRoute
   '/join': typeof JoinRoute
   '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
-  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/resources': typeof ResourcesRoute
   '/signup': typeof SignupRoute
   '/channels/$channelId': typeof ChannelsChannelIdRoute
+  '/chat/direct': typeof ChatDirectRoute
+  '/notifications/announcements': typeof NotificationsAnnouncementsRoute
+  '/notifications/mentions': typeof NotificationsMentionsRoute
+  '/notifications/unread': typeof NotificationsUnreadRoute
+  '/settings/channels': typeof SettingsChannelsRoute
+  '/settings/members': typeof SettingsMembersRoute
+  '/settings/organization': typeof SettingsOrganizationRoute
+  '/chat/': typeof ChatIndexRoute
+  '/notifications/': typeof NotificationsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/chat/dm/$memberId': typeof ChatDmMemberIdRoute
+  '/notifications/channels/$channelId': typeof NotificationsChannelsChannelIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/chat': typeof ChatRoute
   '/join': typeof JoinRoute
   '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
-  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/resources': typeof ResourcesRoute
   '/signup': typeof SignupRoute
   '/channels/$channelId': typeof ChannelsChannelIdRoute
+  '/chat/direct': typeof ChatDirectRoute
+  '/notifications/announcements': typeof NotificationsAnnouncementsRoute
+  '/notifications/mentions': typeof NotificationsMentionsRoute
+  '/notifications/unread': typeof NotificationsUnreadRoute
+  '/settings/channels': typeof SettingsChannelsRoute
+  '/settings/members': typeof SettingsMembersRoute
+  '/settings/organization': typeof SettingsOrganizationRoute
+  '/chat': typeof ChatIndexRoute
+  '/notifications': typeof NotificationsIndexRoute
+  '/settings': typeof SettingsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/chat/dm/$memberId': typeof ChatDmMemberIdRoute
+  '/notifications/channels/$channelId': typeof NotificationsChannelsChannelIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/chat': typeof ChatRoute
   '/join': typeof JoinRoute
   '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
-  '/notifications': typeof NotificationsRoute
   '/onboarding': typeof OnboardingRoute
   '/resources': typeof ResourcesRoute
   '/signup': typeof SignupRoute
   '/channels/$channelId': typeof ChannelsChannelIdRoute
+  '/chat/direct': typeof ChatDirectRoute
+  '/notifications/announcements': typeof NotificationsAnnouncementsRoute
+  '/notifications/mentions': typeof NotificationsMentionsRoute
+  '/notifications/unread': typeof NotificationsUnreadRoute
+  '/settings/channels': typeof SettingsChannelsRoute
+  '/settings/members': typeof SettingsMembersRoute
+  '/settings/organization': typeof SettingsOrganizationRoute
+  '/chat/': typeof ChatIndexRoute
+  '/notifications/': typeof NotificationsIndexRoute
+  '/settings/': typeof SettingsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/chat/dm/$memberId': typeof ChatDmMemberIdRoute
+  '/notifications/channels/$channelId': typeof NotificationsChannelsChannelIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/chat'
     | '/join'
     | '/knowledge'
     | '/login'
-    | '/notifications'
     | '/onboarding'
     | '/resources'
     | '/signup'
     | '/channels/$channelId'
+    | '/chat/direct'
+    | '/notifications/announcements'
+    | '/notifications/mentions'
+    | '/notifications/unread'
+    | '/settings/channels'
+    | '/settings/members'
+    | '/settings/organization'
+    | '/chat/'
+    | '/notifications/'
+    | '/settings/'
     | '/api/auth/$'
+    | '/chat/dm/$memberId'
+    | '/notifications/channels/$channelId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/chat'
     | '/join'
     | '/knowledge'
     | '/login'
-    | '/notifications'
     | '/onboarding'
     | '/resources'
     | '/signup'
     | '/channels/$channelId'
+    | '/chat/direct'
+    | '/notifications/announcements'
+    | '/notifications/mentions'
+    | '/notifications/unread'
+    | '/settings/channels'
+    | '/settings/members'
+    | '/settings/organization'
+    | '/chat'
+    | '/notifications'
+    | '/settings'
     | '/api/auth/$'
+    | '/chat/dm/$memberId'
+    | '/notifications/channels/$channelId'
   id:
     | '__root__'
     | '/'
-    | '/chat'
     | '/join'
     | '/knowledge'
     | '/login'
-    | '/notifications'
     | '/onboarding'
     | '/resources'
     | '/signup'
     | '/channels/$channelId'
+    | '/chat/direct'
+    | '/notifications/announcements'
+    | '/notifications/mentions'
+    | '/notifications/unread'
+    | '/settings/channels'
+    | '/settings/members'
+    | '/settings/organization'
+    | '/chat/'
+    | '/notifications/'
+    | '/settings/'
     | '/api/auth/$'
+    | '/chat/dm/$memberId'
+    | '/notifications/channels/$channelId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ChatRoute: typeof ChatRoute
   JoinRoute: typeof JoinRoute
   KnowledgeRoute: typeof KnowledgeRoute
   LoginRoute: typeof LoginRoute
-  NotificationsRoute: typeof NotificationsRoute
   OnboardingRoute: typeof OnboardingRoute
   ResourcesRoute: typeof ResourcesRoute
   SignupRoute: typeof SignupRoute
   ChannelsChannelIdRoute: typeof ChannelsChannelIdRoute
+  ChatDirectRoute: typeof ChatDirectRoute
+  NotificationsAnnouncementsRoute: typeof NotificationsAnnouncementsRoute
+  NotificationsMentionsRoute: typeof NotificationsMentionsRoute
+  NotificationsUnreadRoute: typeof NotificationsUnreadRoute
+  SettingsChannelsRoute: typeof SettingsChannelsRoute
+  SettingsMembersRoute: typeof SettingsMembersRoute
+  SettingsOrganizationRoute: typeof SettingsOrganizationRoute
+  ChatIndexRoute: typeof ChatIndexRoute
+  NotificationsIndexRoute: typeof NotificationsIndexRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ChatDmMemberIdRoute: typeof ChatDmMemberIdRoute
+  NotificationsChannelsChannelIdRoute: typeof NotificationsChannelsChannelIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -196,13 +328,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/notifications': {
-      id: '/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -224,13 +349,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/chat': {
-      id: '/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof ChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -238,11 +356,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/settings'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications/': {
+      id: '/notifications/'
+      path: '/notifications'
+      fullPath: '/notifications/'
+      preLoaderRoute: typeof NotificationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat/': {
+      id: '/chat/'
+      path: '/chat'
+      fullPath: '/chat/'
+      preLoaderRoute: typeof ChatIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/organization': {
+      id: '/settings/organization'
+      path: '/settings/organization'
+      fullPath: '/settings/organization'
+      preLoaderRoute: typeof SettingsOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/members': {
+      id: '/settings/members'
+      path: '/settings/members'
+      fullPath: '/settings/members'
+      preLoaderRoute: typeof SettingsMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/channels': {
+      id: '/settings/channels'
+      path: '/settings/channels'
+      fullPath: '/settings/channels'
+      preLoaderRoute: typeof SettingsChannelsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications/unread': {
+      id: '/notifications/unread'
+      path: '/notifications/unread'
+      fullPath: '/notifications/unread'
+      preLoaderRoute: typeof NotificationsUnreadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications/mentions': {
+      id: '/notifications/mentions'
+      path: '/notifications/mentions'
+      fullPath: '/notifications/mentions'
+      preLoaderRoute: typeof NotificationsMentionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications/announcements': {
+      id: '/notifications/announcements'
+      path: '/notifications/announcements'
+      fullPath: '/notifications/announcements'
+      preLoaderRoute: typeof NotificationsAnnouncementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat/direct': {
+      id: '/chat/direct'
+      path: '/chat/direct'
+      fullPath: '/chat/direct'
+      preLoaderRoute: typeof ChatDirectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/channels/$channelId': {
       id: '/channels/$channelId'
       path: '/channels/$channelId'
       fullPath: '/channels/$channelId'
       preLoaderRoute: typeof ChannelsChannelIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications/channels/$channelId': {
+      id: '/notifications/channels/$channelId'
+      path: '/notifications/channels/$channelId'
+      fullPath: '/notifications/channels/$channelId'
+      preLoaderRoute: typeof NotificationsChannelsChannelIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chat/dm/$memberId': {
+      id: '/chat/dm/$memberId'
+      path: '/chat/dm/$memberId'
+      fullPath: '/chat/dm/$memberId'
+      preLoaderRoute: typeof ChatDmMemberIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
@@ -257,16 +459,26 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ChatRoute: ChatRoute,
   JoinRoute: JoinRoute,
   KnowledgeRoute: KnowledgeRoute,
   LoginRoute: LoginRoute,
-  NotificationsRoute: NotificationsRoute,
   OnboardingRoute: OnboardingRoute,
   ResourcesRoute: ResourcesRoute,
   SignupRoute: SignupRoute,
   ChannelsChannelIdRoute: ChannelsChannelIdRoute,
+  ChatDirectRoute: ChatDirectRoute,
+  NotificationsAnnouncementsRoute: NotificationsAnnouncementsRoute,
+  NotificationsMentionsRoute: NotificationsMentionsRoute,
+  NotificationsUnreadRoute: NotificationsUnreadRoute,
+  SettingsChannelsRoute: SettingsChannelsRoute,
+  SettingsMembersRoute: SettingsMembersRoute,
+  SettingsOrganizationRoute: SettingsOrganizationRoute,
+  ChatIndexRoute: ChatIndexRoute,
+  NotificationsIndexRoute: NotificationsIndexRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ChatDmMemberIdRoute: ChatDmMemberIdRoute,
+  NotificationsChannelsChannelIdRoute: NotificationsChannelsChannelIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

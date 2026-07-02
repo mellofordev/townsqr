@@ -4,6 +4,7 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 
 import { getDb } from "#/db/index.ts";
 import * as schema from "#/db/schema.ts";
+import { getEnvValue } from "#/server/env.ts";
 
 export const auth = betterAuth({
 	appName: "TownSqr",
@@ -24,10 +25,10 @@ export const auth = betterAuth({
 	},
 	socialProviders: {
 		google: {
-			clientId: process.env.GOOGLE_CLIENT_ID as string,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+			clientId: getEnvValue("GOOGLE_CLIENT_ID") ?? "",
+			clientSecret: getEnvValue("GOOGLE_CLIENT_SECRET") ?? "",
 		},
 	},
-	secret: process.env.BETTER_AUTH_SECRET,
+	secret: getEnvValue("BETTER_AUTH_SECRET"),
 	plugins: [tanstackStartCookies()],
 });

@@ -7,9 +7,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card.tsx";
+import { requireWorkspaceRoute } from "#/lib/route-guards.ts";
 
-export const Route = createFileRoute("/notifications")({
-	component: NotificationsPage,
+export const Route = createFileRoute("/notifications/")({
+	loader: requireWorkspaceRoute,
+	component: NotificationsIndexPage,
 	head: () => ({
 		meta: [{ title: "Notifications | TownSqr" }],
 	}),
@@ -33,7 +35,7 @@ const notifications = [
 	},
 ];
 
-function NotificationsPage() {
+function NotificationsIndexPage() {
 	return (
 		<div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-6">
 			<header className="border-b pb-5">

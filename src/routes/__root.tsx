@@ -9,6 +9,7 @@ import {
 import { ActivityPanel } from "#/components/activities/activitypanel.tsx";
 import { Appbar } from "#/components/navigation/appbar.tsx";
 import { Sidesheet } from "#/components/navigation/sidesheet.tsx";
+import { buildSidesheetContent } from "#/components/navigation/sidesheet-config.ts";
 import { useAuthSession } from "#/lib/auth-session.ts";
 import { useWorkspaceSummary } from "#/lib/workspace.ts";
 import appCss from "../styles.css?url";
@@ -51,9 +52,10 @@ const publicRoutePrefixes = [
 ];
 
 function RootLayout() {
-	const pathname = useRouterState({
-		select: (state) => state.location.pathname,
+	const location = useRouterState({
+		select: (state) => state.location,
 	});
+	const pathname = location.pathname;
 	const isPublicRoute = publicRoutePrefixes.some((prefix) =>
 		pathname.startsWith(prefix),
 	);
@@ -73,12 +75,18 @@ function AppShell({ pathname }: { pathname: string }) {
 			id: channel.slug,
 			name: channel.name,
 		})) ?? [];
-	const activeChannel = getActiveChannel(pathname);
+	const sidesheet = buildSidesheetContent({
+		channels,
+		members: workspaceSummary?.members ?? [],
+		pathname,
+	});
+	const showActivityPanel = pathname === "/";
 
 	return (
 		<div className="flex h-svh min-h-0 w-full max-w-full overflow-hidden bg-background text-foreground">
 			<Appbar
 				activeItem={getActiveAppbarItem(pathname)}
+				settingsActive={pathname.startsWith("/settings")}
 				user={{
 					name: session?.user.name ?? "TownSqr Member",
 					imageUrl: session?.user.image ?? undefined,
@@ -86,16 +94,24 @@ function AppShell({ pathname }: { pathname: string }) {
 				}}
 			/>
 			<Sidesheet
-				activeChannel={activeChannel}
-				activeItem={getActiveSidesheetItem(pathname)}
-				channels={channels}
-				memberCount={workspaceSummary?.counts.members}
+				activeItem={sidesheet.activeItem}
+				footer={
+					<div className="rounded-2xl border border-sidebar-border bg-background/60 px-3 py-2 text-xs text-muted-foreground">
+						<span className="font-medium text-foreground">
+							{sidesheet.footerValue}
+						</span>{" "}
+						{sidesheet.footerLabel}
+					</div>
+				}
+				searchLabel={sidesheet.searchLabel}
+				searchPlaceholder={sidesheet.searchPlaceholder}
+				sections={sidesheet.sections}
 				workspaceName={workspaceSummary?.organization.name}
 			/>
 			<main className="h-svh min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain">
 				<Outlet />
 			</main>
-			<ActivityPanel className="hidden xl:flex" />
+			{showActivityPanel ? <ActivityPanel className="hidden xl:flex" /> : null}
 		</div>
 	);
 }
@@ -110,24 +126,6 @@ function getActiveAppbarItem(pathname: string) {
 	}
 
 	return "home";
-}
-
-function getActiveSidesheetItem(pathname: string) {
-	if (pathname.startsWith("/knowledge")) {
-		return "knowledge-library";
-	}
-
-	if (pathname.startsWith("/resources")) {
-		return "resources";
-	}
-
-	return "feed";
-}
-
-function getActiveChannel(pathname: string) {
-	const match = /^\/channels\/([^/]+)/.exec(pathname);
-
-	return match?.[1];
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {

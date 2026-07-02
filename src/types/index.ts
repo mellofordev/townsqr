@@ -9,6 +9,7 @@ export type {
 	AppbarUserStatus,
 	SidesheetChannel,
 	SidesheetNavItem,
+	SidesheetSection,
 } from "./navigation.ts";
 export type {
 	CompleteOnboardingData,
@@ -22,4 +23,11 @@ export type {
 export type { OrganizationSummary, OrganizationType } from "./organization.ts";
 export { organizationTypeOptions, organizationTypes } from "./organization.ts";
 export type { HeroIcon } from "./ui.ts";
-export type { WorkspaceChannel, WorkspaceSummary } from "./workspace.ts";
+export type {
+	WorkspaceChannel,
+	WorkspaceSettings,
+	WorkspaceSettingsInvite,
+	WorkspaceSettingsMember,
+	WorkspaceSummary,
+	WorkspaceSummaryMember,
+} from "./workspace.ts";

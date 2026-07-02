@@ -7,11 +7,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card.tsx";
+import { requireWorkspaceRoute } from "#/lib/route-guards.ts";
 
-export const Route = createFileRoute("/chat")({
-	component: ChatPage,
+export const Route = createFileRoute("/chat/direct")({
+	loader: requireWorkspaceRoute,
+	component: DirectMessagesPage,
 	head: () => ({
-		meta: [{ title: "Chat | TownSqr" }],
+		meta: [{ title: "Direct Messages | TownSqr Chat" }],
 	}),
 });
 
@@ -33,15 +35,16 @@ const conversations = [
 	},
 ];
 
-function ChatPage() {
+function DirectMessagesPage() {
 	return (
 		<div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-6">
 			<header className="border-b pb-5">
 				<p className="text-sm font-medium text-muted-foreground">Home</p>
-				<h1 className="mt-1 text-2xl font-semibold tracking-normal">Chat</h1>
+				<h1 className="mt-1 text-2xl font-semibold tracking-normal">
+					Direct messages
+				</h1>
 				<p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-					Direct messages, room conversations, and realtime workspace
-					discussions.
+					Direct message conversations with people in your organization.
 				</p>
 			</header>
 
