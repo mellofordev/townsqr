@@ -18,6 +18,11 @@ export interface CreateOrganizationChannelData {
 	name: string;
 }
 
+export interface UpdateOrganizationChannelData {
+	channelId: string;
+	name: string;
+}
+
 export interface UpdateOrganizationMemberRoleData {
 	memberId: string;
 	role: string;
@@ -66,6 +71,24 @@ export function validateCreateOrganizationChannel(
 	}
 
 	return {
+		name: readString(value, "name", "Enter a channel name.", "CHANNEL_INVALID"),
+	};
+}
+
+export function validateUpdateOrganizationChannel(
+	value: unknown,
+): UpdateOrganizationChannelData {
+	if (!isRecord(value)) {
+		throw appError("CHANNEL_INVALID", 400, "Invalid channel data.");
+	}
+
+	return {
+		channelId: readString(
+			value,
+			"channelId",
+			"Select a valid channel.",
+			"CHANNEL_INVALID",
+		),
 		name: readString(value, "name", "Enter a channel name.", "CHANNEL_INVALID"),
 	};
 }

@@ -28,6 +28,7 @@ import {
 import {
 	validateCreateOrganizationChannel,
 	validateCreateOrganizationInvite,
+	validateUpdateOrganizationChannel,
 	validateUpdateOrganizationMemberRole,
 } from "#/server/validators/workspace.ts";
 import type { WorkspaceSettings, WorkspaceSummary } from "#/types/index.ts";
@@ -417,6 +418,83 @@ export const createOrganizationChannel = createServerFn({ method: "POST" })
 			.returning({ id: organizationChannel.id });
 
 		return { id: channel?.id };
+	});
+
+export const updateOrganizationChannel = createServerFn({ method: "POST" })
+	.validator(validateUpdateOrganizationChannel)
+	.handler(async ({ data }) => {
+		const { db, workspace } = await getCurrentWorkspace();
+
+		assertCanManageWorkspace(workspace.memberRole);
+
+		const name = normalizeChannelName(data.name);
+		const slug = getChannelSlug(name);
+
+		if (name.length < 2 || name.length > 40) {
+			throw appError(
+				"CHANNEL_INVALID",
+				400,
+				"Keep channel names between 2 and 40 characters.",
+			);
+		}
+
+		if (!slug) {
+			throw appError(
+				"CHANNEL_INVALID",
+				400,
+				"Use letters or numbers in channel names.",
+			);
+		}
+
+		const [channel] = await db
+			.select({
+				id: organizationChannel.id,
+				slug: organizationChannel.slug,
+			})
+			.from(organizationChannel)
+			.where(
+				and(
+					eq(organizationChannel.id, data.channelId),
+					eq(organizationChannel.organizationId, workspace.id),
+				),
+			)
+			.limit(1);
+
+		if (!channel) {
+			throw appError("CHANNEL_NOT_FOUND", 404, "Channel was not found.");
+		}
+
+		if (channel.slug !== slug) {
+			const [existingChannel] = await db
+				.select({ id: organizationChannel.id })
+				.from(organizationChannel)
+				.where(
+					and(
+						eq(organizationChannel.organizationId, workspace.id),
+						eq(organizationChannel.slug, slug),
+					),
+				)
+				.limit(1);
+
+			if (existingChannel) {
+				throw appError(
+					"CHANNEL_ALREADY_EXISTS",
+					409,
+					"A channel with this name already exists.",
+				);
+			}
+		}
+
+		await db
+			.update(organizationChannel)
+			.set({
+				name,
+				slug,
+				updatedAt: new Date(),
+			})
+			.where(eq(organizationChannel.id, channel.id));
+
+		return { id: channel.id };
 	});
 
 export const updateOrganizationMemberRole = createServerFn({ method: "POST" })

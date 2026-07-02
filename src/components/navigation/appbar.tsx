@@ -101,7 +101,7 @@ export function Appbar({
 								<SidebarMenu className="items-center gap-3">
 									{items.map((item) => {
 										const Icon = item.icon;
-										const isActive = item.id === activeItem;
+										const isActive = !settingsActive && item.id === activeItem;
 
 										return (
 											<SidebarMenuItem key={item.id}>
